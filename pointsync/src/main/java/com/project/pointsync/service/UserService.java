@@ -1,7 +1,7 @@
 package com.project.pointsync.service;
 
 import com.project.pointsync.domain.User;
-import com.project.pointsync.dto.UserResDto;
+import com.project.pointsync.dto.User.UserResDto;
 import com.project.pointsync.global.exception.CustomException;
 import com.project.pointsync.global.exception.ErrorCode;
 import com.project.pointsync.repository.UserRepository;

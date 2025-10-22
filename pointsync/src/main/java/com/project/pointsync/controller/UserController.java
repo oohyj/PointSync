@@ -1,6 +1,6 @@
 package com.project.pointsync.controller;
 
-import com.project.pointsync.dto.UserResDto;
+import com.project.pointsync.dto.User.UserResDto;
 import com.project.pointsync.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -1,7 +1,7 @@
 package com.project.pointsync.controller;
 
-import com.project.pointsync.dto.CheckInResult;
-import com.project.pointsync.dto.SummaryResult;
+import com.project.pointsync.dto.AttendanceLog.CheckInResult;
+import com.project.pointsync.dto.AttendanceLog.SummaryResult;
 import com.project.pointsync.service.AttendanceLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;

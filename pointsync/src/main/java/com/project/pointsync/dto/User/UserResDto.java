@@ -1,4 +1,4 @@
-package com.project.pointsync.dto;
+package com.project.pointsync.dto.User;
 
 import com.project.pointsync.domain.User;
 

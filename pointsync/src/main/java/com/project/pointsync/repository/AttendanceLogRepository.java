@@ -20,5 +20,4 @@ public interface AttendanceLogRepository extends JpaRepository<AttendanceLog, Lo
            """)
     List<LocalDate> findDatesByUserIdAndRange(Long userId, LocalDate from, LocalDate to);
 
-    long countByUserIdAndAttendDateBetween(Long userId, LocalDate from, LocalDate to);
 }

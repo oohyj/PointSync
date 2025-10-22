@@ -1,4 +1,4 @@
-package com.project.pointsync.dto;
+package com.project.pointsync.dto.AttendanceLog;
 
 public record SummaryResult(
         boolean attendedToday,

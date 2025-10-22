@@ -2,8 +2,8 @@ package com.project.pointsync.service;
 
 import com.project.pointsync.domain.AttendanceLog;
 import com.project.pointsync.domain.User;
-import com.project.pointsync.dto.CheckInResult;
-import com.project.pointsync.dto.SummaryResult;
+import com.project.pointsync.dto.AttendanceLog.CheckInResult;
+import com.project.pointsync.dto.AttendanceLog.SummaryResult;
 import com.project.pointsync.global.time.TimeProvider;
 import com.project.pointsync.repository.AttendanceLogRepository;
 import com.project.pointsync.repository.PointLedgerRepository;
