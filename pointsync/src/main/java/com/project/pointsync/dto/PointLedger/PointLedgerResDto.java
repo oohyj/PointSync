@@ -8,7 +8,7 @@ public record PointLedgerResDto(
         Long id,
         Long userId,
         int amount,
-        String reason,
+        PointLedger.PointReason pointReason,
         LocalDateTime createdAt
 ) {
     public static PointLedgerResDto from(PointLedger p) {

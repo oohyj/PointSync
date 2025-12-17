@@ -52,7 +52,7 @@ public class PointLedgerService {
      */
     public PointLedgerListResDto getHistory(Long userId, int page, int size) {
         PageRequest pageable = PageRequest.of(page, size);
-        // 정렬 메서드를 레포지토리에 추가해두었다고 가정: findByUserIdOrderByIdDesc(...)
+
         Page<PointLedger> resultPage = pointLedgerRepository.findByUserIdOrderByIdDesc(userId, pageable);
 
         var items = resultPage.getContent().stream()

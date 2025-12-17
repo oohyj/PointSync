@@ -23,17 +23,23 @@ public class PointLedger extends BaseTimeEntity {
     @Column(nullable = false)
     private int amount;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private String reason;
+    private PointReason reason;
 
-    private PointLedger(User user, int amount, String reason) {
+    private PointLedger(User user, int amount, PointReason reason) {
         this.user = user;
         this.amount = amount;
         this.reason = reason;
     }
 
-    public static PointLedger create(User user, int amount, String reason) {
+    public enum PointReason {
+        DAILY_CHECK_IN,
+        STREAK_BONUS,
+        ADMIN_ADJUSTMENT
+    }
+
+    public static PointLedger create(User user, int amount, PointReason reason) {
         return new PointLedger(user, amount, reason);
     }
 }
-

@@ -1,14 +1,18 @@
 package com.project.pointsync.service;
 
 import com.project.pointsync.domain.AttendanceLog;
+import com.project.pointsync.domain.PointLedger;
 import com.project.pointsync.domain.User;
 import com.project.pointsync.dto.AttendanceLog.CheckInResult;
 import com.project.pointsync.dto.AttendanceLog.SummaryResult;
+import com.project.pointsync.global.exception.CustomException;
+import com.project.pointsync.global.exception.ErrorCode;
 import com.project.pointsync.global.time.TimeProvider;
 import com.project.pointsync.repository.AttendanceLogRepository;
 import com.project.pointsync.repository.PointLedgerRepository;
 import com.project.pointsync.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -16,12 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class AttendanceLogService {
 
     private final AttendanceLogRepository attendanceLogRepository;
@@ -37,34 +41,36 @@ public class AttendanceLogService {
      */
     @Transactional
     public CheckInResult checkIn(Long userId) {
-        LocalDate today = time.today();
-        String cacheKey = "attendance:" + userId + ":" + today;
+      LocalDate today = time.today();
+      String cacheKey = "attendance:" + userId + ":" + today;
 
-        // 1) 캐시 히트 → 멱등 성공
-        if (Boolean.TRUE.equals(redis.hasKey(cacheKey))) {
-            int totalPoints = pointLedgerRepository.sumAmountByUserId(userId);
-            int currentStreak = calculateCurrentStreak(userId, today);
-            int longestStreak = calculateLongestStreak(userId);
-            return new CheckInResult(true, today, 0, totalPoints, currentStreak, longestStreak);
-        }
+      long ttlSec = time.secondsUntilMidnight();
+      boolean first = Boolean.TRUE.equals(
+              redis.opsForValue().setIfAbsent(cacheKey,"1" ,java.time.Duration.ofSeconds(ttlSec))
+      );
 
-        // 2) DB 저장 시도 (유니크 제약으로 하루 1회 보장)
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("User not found: " + userId));
-        try {
-            attendanceLogRepository.save(AttendanceLog.create(user, today));
-        } catch (DataIntegrityViolationException ignore) {
-            // 동일 (userId, date) 이미 존재 → 멱등 처리
-        }
+      User user = userRepository.findById(userId)
+              .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // 3) 캐시 기록(자정까지 TTL)
-        long ttlSec = time.secondsUntilMidnight();
-        redis.opsForValue().set(cacheKey, "1", ttlSec, TimeUnit.SECONDS);
+      int todayPoint = 0;
 
+      if(first){
+          try{
+              attendanceLogRepository.save(AttendanceLog.create(user , today));
+
+              pointLedgerRepository.save(PointLedger.create(user , 1 , PointLedger.PointReason.DAILY_CHECK_IN ));
+              todayPoint = 1;
+          }catch (DataIntegrityViolationException ignore){
+              log.info("이미 같은 날짜의 출석 로그가 존재 (race condition) userId={}, date={}", userId, today);
+          }
+
+      }
         int totalPoints = pointLedgerRepository.sumAmountByUserId(userId);
         int currentStreak = calculateCurrentStreak(userId, today);
         int longestStreak = calculateLongestStreak(userId);
-        return new CheckInResult(true, today, 0, totalPoints, currentStreak, longestStreak);
+
+        return new CheckInResult(true, today, todayPoint, totalPoints, currentStreak, longestStreak);
+
     }
 
     /** 기간 내 출석일 목록(캘린더 표시용) */
